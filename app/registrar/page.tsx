@@ -81,7 +81,7 @@ export default function RegistrarPage() {
   const canSave = !!liga.trim() && jogoValido && !!odd && !!prob && ev !== null;
 
   function addSelecao() {
-    setSelecoes((prev) => (prev.length >= 2 ? prev : [...prev, { jogo: "", mercado: MERCADOS[0].options[0] }]));
+    setSelecoes((prev) => [...prev, { jogo: "", mercado: MERCADOS[0].options[0] }]);
   }
   function removeSelecao(i: number) {
     setSelecoes((prev) => prev.filter((_, idx) => idx !== i));
@@ -249,7 +249,7 @@ export default function RegistrarPage() {
           </div>
         ) : (
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-wide text-ink3 mb-2.5">Seleções (máx. 2) *</div>
+            <div className="font-mono text-[10px] uppercase tracking-wide text-ink3 mb-2.5">Seleções *</div>
             {selecoes.map((s, i) => (
               <div key={i} className="border border-rule p-3 mb-2 bg-paper2">
                 <div className="flex justify-between items-center mb-2.5">
@@ -271,14 +271,12 @@ export default function RegistrarPage() {
                 <MercadoSelect value={s.mercado} onChange={(v) => updateSelecao(i, { mercado: v })} />
               </div>
             ))}
-            {selecoes.length < 2 && (
-              <button
-                className="w-full p-2.5 border border-dashed border-rule2 bg-transparent text-ink4 text-[13px] font-semibold mt-1"
-                onClick={addSelecao}
-              >
-                + Adicionar seleção
-              </button>
-            )}
+            <button
+              className="w-full p-2.5 border border-dashed border-rule2 bg-transparent text-ink4 text-[13px] font-semibold mt-1"
+              onClick={addSelecao}
+            >
+              + Adicionar seleção
+            </button>
           </div>
         )}
       </div>

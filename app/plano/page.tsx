@@ -9,7 +9,6 @@ const rules = [
   "Só porque um tipster recomendou",
   "Sem análise própria",
   "Em ligas que não acompanha",
-  "Múltiplas com mais de 2 seleções",
   "EV abaixo de 5%",
   "Mais de 3 apostas por dia",
 ];

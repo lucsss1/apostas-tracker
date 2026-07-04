@@ -57,6 +57,8 @@ export default function RegistrarPage() {
   const [notas, setNotas] = useState("");
   const [saving, setSaving] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  const [stakeMode, setStakeMode] = useState<"rec" | "custom">("rec");
+  const [customStakeU, setCustomStakeU] = useState("");
 
   useEffect(() => {
     const t = consumeCalcTransfer();
@@ -72,8 +74,10 @@ export default function RegistrarPage() {
   const pMkt = tipo === "s" ? calcPMkt(odd, oddC) : null;
   const ev = calcEV(prob, odd);
   const cls = ev === null ? "" : ev < 0 ? "neg" : ev < 5 ? "warn" : "pos";
-  const stake = stakeFrom(ev);
-  const valR = (stake.u * banca * 0.01).toFixed(2);
+  const recStake = stakeFrom(ev);
+  const valR = (recStake.u * banca * 0.01).toFixed(2);
+  const finalStakeU = stakeMode === "rec" ? recStake.u : parseInt(customStakeU, 10) || 0;
+  const finalStakeR = parseFloat((finalStakeU * banca * 0.01).toFixed(2));
   const adj = pMkt != null && prob ? parseFloat(prob) - pMkt : null;
   const stageColor = stageColors[cls];
 
@@ -101,8 +105,6 @@ export default function RegistrarPage() {
   }
 
   async function saveAposta() {
-    const evVal = calcEV(prob, odd);
-    const sk = stakeFrom(evVal);
     const sel = tipo === "m" ? selecoes.map((m) => `${m.jogo} — ${m.mercado}`).filter((s) => s.trim() !== " —").join("\n") : null;
     const bet: Aposta = {
       id: Date.now(),
@@ -116,9 +118,9 @@ export default function RegistrarPage() {
       pMkt: tipo === "s" ? calcPMkt(odd, oddC) : null,
       ajustes: ajustes.trim() || null,
       psua: parseFloat(prob),
-      ev: evVal != null ? parseFloat(fmt(evVal)) : null,
-      stakeU: sk.u,
-      stakeR: parseFloat((sk.u * banca * 0.01).toFixed(2)),
+      ev: ev != null ? parseFloat(fmt(ev)) : null,
+      stakeU: finalStakeU,
+      stakeR: finalStakeR,
       notas: notas.trim() || null,
       resultado: "pendente",
       oddFech: null,
@@ -152,7 +154,7 @@ export default function RegistrarPage() {
           }}
         >
           {ev != null && ev >= 5
-            ? `${stake.l} = R$ ${valR}`
+            ? `recomendado: ${recStake.l} = R$ ${valR}`
             : ev != null && ev < 0
             ? "EV negativo — não apostar"
             : ev != null
@@ -175,7 +177,7 @@ export default function RegistrarPage() {
           </div>
           <div className="p-2.5 text-center">
             <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">Stake</div>
-            <div className="font-mono text-[13px] font-medium text-ink3">{stake.u > 0 ? stake.u + "u" : "—"}</div>
+            <div className="font-mono text-[13px] font-medium text-ink3">{finalStakeU > 0 ? finalStakeU + "u" : "—"}</div>
           </div>
         </div>
       </div>
@@ -316,6 +318,48 @@ export default function RegistrarPage() {
           <div className="font-mono text-[10px] text-ink4 mt-1">
             Use &quot;calc&quot; no header se precisar de ajuda para chegar no número.
           </div>
+        </div>
+
+        <div className="mb-3">
+          <label className="block font-mono text-[10px] uppercase tracking-wide text-ink3 mb-1.5">Stake</label>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <button
+              className={`p-[11px] text-[13px] font-semibold border transition-colors ${
+                stakeMode === "rec" ? "border-2 border-ink bg-ink text-paper" : "border-rule2 bg-paper2 text-ink3"
+              }`}
+              onClick={() => setStakeMode("rec")}
+            >
+              Recomendada{recStake.u > 0 ? ` (${recStake.u}u)` : ""}
+            </button>
+            <button
+              className={`p-[11px] text-[13px] font-semibold border transition-colors ${
+                stakeMode === "custom" ? "border-2 border-ink bg-ink text-paper" : "border-rule2 bg-paper2 text-ink3"
+              }`}
+              onClick={() => {
+                setStakeMode("custom");
+                if (!customStakeU) setCustomStakeU(String(recStake.u || 1));
+              }}
+            >
+              Personalizada
+            </button>
+          </div>
+          {stakeMode === "custom" && (
+            <div>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                placeholder="ex: 2"
+                value={customStakeU}
+                onChange={(e) => setCustomStakeU(e.target.value)}
+              />
+              <div className="font-mono text-[10px] text-ink4 mt-1">
+                {finalStakeU > 0
+                  ? `${finalStakeU}u = R$ ${finalStakeR.toFixed(2)}`
+                  : "Informe as unidades apostadas (número inteiro)"}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mb-3">

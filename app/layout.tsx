@@ -32,11 +32,11 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Apostas",
+  title: "Hegreen",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Apostas",
+    title: "Hegreen",
   },
 };
 

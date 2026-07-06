@@ -77,3 +77,5 @@ export const MERCADOS: MercadoGroup[] = [
     options: ["Outro"],
   },
 ];
+
+export const MERCADO_OPTIONS: string[] = MERCADOS.flatMap((g) => g.options);

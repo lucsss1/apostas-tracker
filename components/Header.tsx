@@ -10,12 +10,7 @@ export default function Header() {
       className="sticky top-0 z-[100] flex flex-shrink-0 items-center gap-2.5 bg-paper border-b-2 border-ink px-[18px]"
       style={{ height: "var(--hdr-h)" }}
     >
-      <div className="font-serif italic text-lg text-ink tracking-tight">
-        Apostas{" "}
-        <span className="not-italic font-mono text-[11px] text-ink3 tracking-wider align-middle ml-1">
-          / tracker
-        </span>
-      </div>
+      <div className="font-serif italic text-lg text-ink tracking-tight">Hegreen</div>
       <SyncDot />
       <div className="ml-auto flex gap-1.5">
         <button

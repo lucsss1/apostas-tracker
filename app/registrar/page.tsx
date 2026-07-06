@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { calcEV, calcPMkt, fmt, stakeFrom, today } from "@/lib/calc";
-import { MERCADOS } from "@/lib/mercados";
+import { MERCADO_OPTIONS } from "@/lib/mercados";
 import type { Aposta } from "@/lib/types";
 import StatsPanel from "@/components/StatsPanel";
 
@@ -21,19 +21,15 @@ const stageColors: Record<string, { border: string; bg: string; text: string }> 
   "": { border: "var(--ink)", bg: "transparent", text: "var(--ink4)" },
 };
 
-function MercadoSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function MercadoInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <select value={value} onChange={(e) => onChange(e.target.value)}>
-      {MERCADOS.map((g) => (
-        <optgroup key={g.label} label={g.label}>
-          {g.options.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </select>
+    <input
+      type="text"
+      list="mercados-datalist"
+      placeholder="Selecione ou digite o mercado"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
   );
 }
 
@@ -45,10 +41,10 @@ export default function RegistrarPage() {
   const [data, setData] = useState(today());
   const [liga, setLiga] = useState("");
   const [jogo, setJogo] = useState("");
-  const [mercado, setMercado] = useState(MERCADOS[0].options[0]);
+  const [mercado, setMercado] = useState(MERCADO_OPTIONS[0]);
   const [selecoes, setSelecoes] = useState<Selecao[]>([
-    { jogo: "", mercado: MERCADOS[0].options[0] },
-    { jogo: "", mercado: MERCADOS[0].options[0] },
+    { jogo: "", mercado: MERCADO_OPTIONS[0] },
+    { jogo: "", mercado: MERCADO_OPTIONS[0] },
   ]);
   const [odd, setOdd] = useState("");
   const [oddC, setOddC] = useState("");
@@ -85,7 +81,7 @@ export default function RegistrarPage() {
   const canSave = !!liga.trim() && jogoValido && !!odd && !!prob && ev !== null;
 
   function addSelecao() {
-    setSelecoes((prev) => [...prev, { jogo: "", mercado: MERCADOS[0].options[0] }]);
+    setSelecoes((prev) => [...prev, { jogo: "", mercado: MERCADO_OPTIONS[0] }]);
   }
   function removeSelecao(i: number) {
     setSelecoes((prev) => prev.filter((_, idx) => idx !== i));
@@ -98,8 +94,8 @@ export default function RegistrarPage() {
     setTipo(t);
     if (t === "m") {
       setSelecoes([
-        { jogo: "", mercado: MERCADOS[0].options[0] },
-        { jogo: "", mercado: MERCADOS[0].options[0] },
+        { jogo: "", mercado: MERCADO_OPTIONS[0] },
+        { jogo: "", mercado: MERCADO_OPTIONS[0] },
       ]);
     }
   }
@@ -135,6 +131,11 @@ export default function RegistrarPage() {
 
   return (
     <div>
+      <datalist id="mercados-datalist">
+        {MERCADO_OPTIONS.map((o) => (
+          <option key={o} value={o} />
+        ))}
+      </datalist>
       <div
         className="border-2 px-5 pt-7 pb-[22px] text-center mb-5 transition-colors duration-300"
         style={{ borderColor: stageColor.border, background: stageColor.bg }}
@@ -246,7 +247,7 @@ export default function RegistrarPage() {
             </div>
             <div className="mb-3">
               <label className="block font-mono text-[10px] uppercase tracking-wide text-ink3 mb-1.5">Mercado *</label>
-              <MercadoSelect value={mercado} onChange={setMercado} />
+              <MercadoInput value={mercado} onChange={setMercado} />
             </div>
           </div>
         ) : (
@@ -270,7 +271,7 @@ export default function RegistrarPage() {
                   value={s.jogo}
                   onChange={(e) => updateSelecao(i, { jogo: e.target.value })}
                 />
-                <MercadoSelect value={s.mercado} onChange={(v) => updateSelecao(i, { mercado: v })} />
+                <MercadoInput value={s.mercado} onChange={(v) => updateSelecao(i, { mercado: v })} />
               </div>
             ))}
             <button

@@ -75,15 +75,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const loadBanca = useCallback(async () => {
     const { data, error } = await supabase
       .from("config")
-      .select("banca_inicial")
-      .eq("id", 1)
+      .select("value")
+      .eq("key", "banca_inicial")
       .maybeSingle();
     if (error || !data) {
       setBancaState(getBanca());
       return;
     }
-    setBancaState(data.banca_inicial);
-    persistBanca(data.banca_inicial);
+    const v = parseFloat(data.value);
+    setBancaState(v);
+    persistBanca(v);
   }, []);
 
   useEffect(() => {
@@ -167,7 +168,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       setBancaState(v);
       persistBanca(v);
       setSync("sp");
-      const { error } = await supabase.from("config").upsert({ id: 1, banca_inicial: v });
+      const { error } = await supabase
+        .from("config")
+        .upsert({ key: "banca_inicial", value: String(v) }, { onConflict: "key" });
       if (error) {
         setSync("err");
         toast("Salvo offline");
@@ -191,7 +194,9 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       const banca = importedBanca || 100;
       setBancaState(banca);
       persistBanca(banca);
-      await supabase.from("config").upsert({ id: 1, banca_inicial: banca });
+      await supabase
+        .from("config")
+        .upsert({ key: "banca_inicial", value: String(banca) }, { onConflict: "key" });
       await loadBets();
       toast(`✓ ${importedBets.length} importadas`);
     },

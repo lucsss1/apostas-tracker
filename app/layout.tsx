@@ -65,7 +65,7 @@ export default function RootLayout({
               className="flex-1 overflow-y-auto"
               style={{ paddingBottom: "calc(var(--nav-h) + 16px)" }}
             >
-              <div className="px-[18px] py-5 max-w-[560px] mx-auto">{children}</div>
+              <div className="px-[18px] py-5 max-w-[560px] lg:max-w-[960px] mx-auto">{children}</div>
             </div>
           </div>
           <BottomNav />

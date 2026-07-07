@@ -54,39 +54,41 @@ export default function HistoricoPage() {
   }
 
   return (
-    <div>
-      <div className="flex border border-rule mb-4 overflow-hidden">
-        {filtros.map((f) => (
-          <button
-            key={f.key}
-            className={`flex-1 py-[7px] px-1 text-center text-[11px] font-semibold font-mono border-r border-rule last:border-r-0 uppercase tracking-wide transition-colors ${
-              filtro === f.key ? "bg-ink text-paper" : "bg-paper text-ink4"
-            }`}
-            onClick={() => setFiltro(f.key)}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+    <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-8 lg:items-start">
+      <div className="lg:sticky lg:top-[calc(var(--hdr-h)+20px)]">
+        <div className="flex lg:flex-col border border-rule mb-4 overflow-hidden">
+          {filtros.map((f) => (
+            <button
+              key={f.key}
+              className={`flex-1 py-[7px] px-1 text-center text-[11px] font-semibold font-mono border-r lg:border-r-0 lg:border-b border-rule last:border-r-0 lg:last:border-b-0 uppercase tracking-wide transition-colors ${
+                filtro === f.key ? "bg-ink text-paper" : "bg-paper text-ink4"
+              }`}
+              onClick={() => setFiltro(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
-      {resolved.length > 0 && (
-        <div className="grid grid-cols-3 border border-rule mb-3.5">
-          <div className="px-3 py-2.5 border-r border-rule text-center">
-            <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">ROI</div>
-            <div className="font-serif text-base font-bold" style={{ color: roi != null && roi >= 0 ? "var(--win)" : "var(--lose)" }}>
-              {roi != null ? (roi >= 0 ? "+" : "") + fmt(roi) + "%" : "—"}
+        {resolved.length > 0 && (
+          <div className="grid grid-cols-3 lg:grid-cols-1 border border-rule mb-3.5">
+            <div className="px-3 py-2.5 border-r lg:border-r-0 lg:border-b border-rule text-center lg:text-left">
+              <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">ROI</div>
+              <div className="font-serif text-base font-bold" style={{ color: roi != null && roi >= 0 ? "var(--win)" : "var(--lose)" }}>
+                {roi != null ? (roi >= 0 ? "+" : "") + fmt(roi) + "%" : "—"}
+              </div>
+            </div>
+            <div className="px-3 py-2.5 border-r lg:border-r-0 lg:border-b border-rule text-center lg:text-left">
+              <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">Melhor merc.</div>
+              <div className="font-serif text-xs font-bold">{bestMarketLabel}</div>
+            </div>
+            <div className="px-3 py-2.5 text-center lg:text-left">
+              <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">Apostas</div>
+              <div className="font-serif text-base font-bold">{resolved.length}</div>
             </div>
           </div>
-          <div className="px-3 py-2.5 border-r border-rule text-center">
-            <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">Melhor merc.</div>
-            <div className="font-serif text-xs font-bold">{bestMarketLabel}</div>
-          </div>
-          <div className="px-3 py-2.5 text-center">
-            <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">Apostas</div>
-            <div className="font-serif text-base font-bold">{resolved.length}</div>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {filtered.length === 0 ? (
         <div className="py-11 text-ink4 font-mono text-[13px]">Nenhuma aposta aqui.</div>

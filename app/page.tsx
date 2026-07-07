@@ -99,48 +99,50 @@ export default function HomePage() {
         </div>
       )}
 
-      <div className="mt-[22px]">
-        <div className="flex justify-between items-baseline mb-3 pb-1.5 border-b border-rule">
-          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink3">Insights</span>
-        </div>
-        {resolved.length >= 5 ? (
-          <div className="grid grid-cols-2 border border-rule mb-5">
-            <div className="px-3.5 py-[13px] border-r border-rule">
-              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-ink4 mb-1">Melhor mercado</div>
-              <div className="font-serif italic text-lg text-ink mb-px">
-                {bestMarket ? bestMarket[0].split("—")[0].trim() : "—"}
-              </div>
-              <div className="font-mono text-[10px] text-ink4">
-                {bestMarket ? `${Math.round((bestMarket[1].w / bestMarket[1].t) * 100)}% win` : ""}
-              </div>
-            </div>
-            <div className="px-3.5 py-[13px]">
-              <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-ink4 mb-1">Liga mais lucrativa</div>
-              <div className="font-serif italic text-lg text-ink mb-px">{bestLeague ? bestLeague[0] : "—"}</div>
-              <div className="font-mono text-[10px] text-ink4">{bestLeague ? fmtR(bestLeague[1].l) : ""}</div>
-            </div>
+      <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+        <div className="mt-[22px]">
+          <div className="flex justify-between items-baseline mb-3 pb-1.5 border-b border-rule">
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink3">Insights</span>
           </div>
-        ) : (
-          <div className="py-3.5 font-mono text-[11px] text-ink4">Disponível após 5 apostas resolvidas.</div>
-        )}
-      </div>
+          {resolved.length >= 5 ? (
+            <div className="grid grid-cols-2 border border-rule mb-5">
+              <div className="px-3.5 py-[13px] border-r border-rule">
+                <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-ink4 mb-1">Melhor mercado</div>
+                <div className="font-serif italic text-lg text-ink mb-px">
+                  {bestMarket ? bestMarket[0].split("—")[0].trim() : "—"}
+                </div>
+                <div className="font-mono text-[10px] text-ink4">
+                  {bestMarket ? `${Math.round((bestMarket[1].w / bestMarket[1].t) * 100)}% win` : ""}
+                </div>
+              </div>
+              <div className="px-3.5 py-[13px]">
+                <div className="font-mono text-[8px] uppercase tracking-[0.12em] text-ink4 mb-1">Liga mais lucrativa</div>
+                <div className="font-serif italic text-lg text-ink mb-px">{bestLeague ? bestLeague[0] : "—"}</div>
+                <div className="font-mono text-[10px] text-ink4">{bestLeague ? fmtR(bestLeague[1].l) : ""}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="py-3.5 font-mono text-[11px] text-ink4">Disponível após 5 apostas resolvidas.</div>
+          )}
+        </div>
 
-      <div className="mt-[22px]">
-        <div className="flex justify-between items-baseline mb-3 pb-1.5 border-b border-rule">
-          <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink3">Hoje</span>
-          <Link href="/historico" className="font-mono text-[9px] text-ink3 tracking-wide underline">
-            ver todas
-          </Link>
-        </div>
-        {todayBets.length === 0 ? (
-          <div className="py-6 text-ink4 text-[13px] font-mono">Nenhuma aposta registrada hoje.</div>
-        ) : (
-          <div>
-            {todayBets.map((b) => (
-              <TodayRow key={b.id} bet={b} />
-            ))}
+        <div className="mt-[22px]">
+          <div className="flex justify-between items-baseline mb-3 pb-1.5 border-b border-rule">
+            <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-ink3">Hoje</span>
+            <Link href="/historico" className="font-mono text-[9px] text-ink3 tracking-wide underline">
+              ver todas
+            </Link>
           </div>
-        )}
+          {todayBets.length === 0 ? (
+            <div className="py-6 text-ink4 text-[13px] font-mono">Nenhuma aposta registrada hoje.</div>
+          ) : (
+            <div>
+              {todayBets.map((b) => (
+                <TodayRow key={b.id} bet={b} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -32,7 +32,8 @@ yarn-error.log*
 .vercel
 
 # local claude code tooling (machine-specific)
-.claude/
+.claude/*
+!.claude/agents/
 run-dev.cmd
 
 # typescript

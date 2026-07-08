@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const AF = "https://v3.football.api-sports.io";
 
+async function getAuthenticatedUser(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  const token = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (!token) return null;
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) return null;
+  return data.user;
+}
+
 export async function GET(req: NextRequest) {
+  const user = await getAuthenticatedUser(req);
+  if (!user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
 

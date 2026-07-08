@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 export interface AFTeam {
   team: { id: number; name: string; country: string };
 }
@@ -23,7 +25,11 @@ export interface TeamStats {
 }
 
 async function afGet<T>(query: string): Promise<T> {
-  const r = await fetch(`/api/stats?${query}`);
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  const r = await fetch(`/api/stats?${query}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!r.ok) throw new Error("API error " + r.status);
   return r.json();
 }

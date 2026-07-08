@@ -36,7 +36,13 @@ export default function PlanoPage() {
       try {
         const d = JSON.parse(ev.target?.result as string) as { banca?: number; bets?: Aposta[] };
         if (!Array.isArray(d.bets)) throw new Error("invalid");
-        if (typeof window !== "undefined" && !window.confirm(`Importar ${d.bets.length} apostas?`)) return;
+        const existingIds = new Set(bets.map((b) => b.id));
+        const dupCount = d.bets.filter((b) => existingIds.has(b.id)).length;
+        const msg =
+          dupCount > 0
+            ? `${dupCount} dessas ${d.bets.length} apostas parecem já existir no seu histórico — importar mesmo assim pode duplicá-las. Continuar?`
+            : `Importar ${d.bets.length} apostas?`;
+        if (typeof window !== "undefined" && !window.confirm(msg)) return;
         await importBets(d.bets, d.banca || 100);
       } catch {
         toast("✗ Arquivo inválido");

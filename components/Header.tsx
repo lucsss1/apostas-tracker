@@ -21,19 +21,19 @@ export default function Header() {
           </span>
         )}
         <button
-          className="font-mono text-[11px] text-ink3 border border-rule2 px-2.5 py-1 tracking-wider active:border-ink active:text-ink transition-colors"
+          className="font-mono text-[11px] text-ink3 border border-rule2 px-3 py-2 tracking-wider active:border-ink active:text-ink transition-colors"
           onClick={openCalc}
         >
           calc
         </button>
         <button
-          className="font-mono text-[11px] text-ink3 border border-rule2 px-2.5 py-1 tracking-wider active:border-ink active:text-ink transition-colors"
+          className="font-mono text-[11px] text-ink3 border border-rule2 px-3 py-2 tracking-wider active:border-ink active:text-ink transition-colors"
           onClick={openBancaSheet}
         >
           banca
         </button>
         <button
-          className="font-mono text-[11px] text-ink3 border border-rule2 px-2.5 py-1 tracking-wider active:border-ink active:text-ink transition-colors"
+          className="font-mono text-[11px] text-ink3 px-3 py-2 tracking-wider ml-1 border-l border-rule active:text-lose transition-colors"
           onClick={signOut}
         >
           sair

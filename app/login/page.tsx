@@ -11,9 +11,11 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState(false);
   const [turnstileKey, setTurnstileKey] = useState(0);
 
   const handleToken = useCallback((token: string | null) => setCaptchaToken(token), []);
+  const handleCaptchaError = useCallback(() => setCaptchaError(true), []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,8 +61,14 @@ export default function LoginPage() {
               required
             />
             <div className="mt-3">
-              <Turnstile key={turnstileKey} onToken={handleToken} />
+              <Turnstile key={turnstileKey} onToken={handleToken} onError={handleCaptchaError} />
             </div>
+            {captchaError && (
+              <div className="text-lose text-xs mt-2">
+                Não foi possível carregar a verificação de segurança. Verifique sua conexão ou
+                desative bloqueadores de anúncio, e recarregue a página.
+              </div>
+            )}
             {error && <div className="text-lose text-xs mt-2">{error}</div>}
             <button
               type="submit"

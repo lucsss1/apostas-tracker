@@ -13,6 +13,25 @@ interface AuthValue {
 
 const AuthContext = createContext<AuthValue | null>(null);
 
+function friendlyAuthError(error: { message?: string; status?: number }): string {
+  const msg = (error.message || "").toLowerCase();
+  const status = error.status;
+
+  if (status === 429 || msg.includes("rate limit")) {
+    return "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente de novo.";
+  }
+  if (msg.includes("captcha")) {
+    return "Não foi possível confirmar que você não é um robô. Recarregue a página e tente novamente.";
+  }
+  if (msg.includes("email") && (msg.includes("invalid") || msg.includes("valid"))) {
+    return "Esse email não parece válido. Confira e tente de novo.";
+  }
+  if (msg.includes("failed to fetch") || msg.includes("network")) {
+    return "Não foi possível conectar ao servidor. Verifique sua internet e tente de novo.";
+  }
+  return "Não foi possível enviar o link de acesso agora. Tente novamente em instantes.";
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,9 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
     if (!error) return null;
-    const status = "status" in error ? error.status : undefined;
-    const detail = error.message || error.name || "Erro desconhecido";
-    return status ? `${detail} (HTTP ${status})` : detail;
+    return friendlyAuthError(error);
   }, []);
 
   const signOut = useCallback(async () => {

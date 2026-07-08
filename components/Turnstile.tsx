@@ -20,27 +20,50 @@ declare global {
   }
 }
 
-export default function Turnstile({ onToken }: { onToken: (token: string | null) => void }) {
+const LOAD_TIMEOUT_MS = 8000;
+
+export default function Turnstile({
+  onToken,
+  onError,
+}: {
+  onToken: (token: string | null) => void;
+  onError?: () => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [rendered, setRendered] = useState(false);
 
   useEffect(() => {
-    if (!scriptLoaded || !containerRef.current || !window.turnstile) return;
     const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-    if (!sitekey) return;
+    if (!sitekey) {
+      onError?.();
+      return;
+    }
+    if (!scriptLoaded || !containerRef.current || !window.turnstile) return;
     window.turnstile.render(containerRef.current, {
       sitekey,
       callback: (token) => onToken(token),
       "expired-callback": () => onToken(null),
-      "error-callback": () => onToken(null),
+      "error-callback": () => onError?.(),
     });
-  }, [scriptLoaded, onToken]);
+    setRendered(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scriptLoaded]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!rendered) onError?.();
+    }, LOAD_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         onLoad={() => setScriptLoaded(true)}
+        onError={() => onError?.()}
       />
       <div ref={containerRef} />
     </>

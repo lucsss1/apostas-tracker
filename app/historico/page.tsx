@@ -31,6 +31,7 @@ export default function HistoricoPage() {
 
   let roi: number | null = null;
   let bestMarketLabel = "—";
+  let bestMarketPct = "";
   if (resolved.length > 0) {
     const totAp = resolved.reduce((s, b) => s + b.stakeR, 0);
     const lucro = resolved.reduce((s, b) => s + (b.lucro || 0), 0);
@@ -41,8 +42,11 @@ export default function HistoricoPage() {
       mM[b.mercado].t++;
       if (b.resultado === "ganhou") mM[b.mercado].w++;
     });
-    const bm = Object.entries(mM).sort((a, b) => b[1].w / b[1].t - a[1].w / a[1].t)[0];
+    const bm = Object.entries(mM)
+      .filter(([, v]) => v.t >= 3)
+      .sort((a, b) => b[1].w / b[1].t - a[1].w / a[1].t)[0];
     bestMarketLabel = bm ? bm[0].split("—")[0].trim().split(" ").slice(0, 2).join(" ") : "—";
+    bestMarketPct = bm ? `${Math.round((bm[1].w / bm[1].t) * 100)}% win` : "";
   }
 
   function toggleOpen(id: number) {
@@ -90,6 +94,7 @@ export default function HistoricoPage() {
             <div className="px-3 py-2.5 border-r lg:border-r-0 lg:border-b border-rule text-center lg:text-left">
               <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">Melhor merc.</div>
               <div className="font-serif text-xs font-bold">{bestMarketLabel}</div>
+              {bestMarketPct && <div className="font-mono text-[9px] text-ink3 mt-px">{bestMarketPct}</div>}
             </div>
             <div className="px-3 py-2.5 text-center lg:text-left">
               <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">Apostas</div>

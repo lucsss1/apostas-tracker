@@ -31,8 +31,14 @@ export default function HomePage() {
       lM[b.liga].t++;
       lM[b.liga].l += b.lucro || 0;
     });
-    bestMarket = Object.entries(mM).sort((a, b) => b[1].w / b[1].t - a[1].w / a[1].t)[0] ?? null;
-    bestLeague = Object.entries(lM).sort((a, b) => b[1].l - a[1].l)[0] ?? null;
+    bestMarket =
+      Object.entries(mM)
+        .filter(([, v]) => v.t >= 3)
+        .sort((a, b) => b[1].w / b[1].t - a[1].w / a[1].t)[0] ?? null;
+    bestLeague =
+      Object.entries(lM)
+        .filter(([, v]) => v.t >= 3)
+        .sort((a, b) => b[1].l - a[1].l)[0] ?? null;
   }
 
   const todayBets = bets.filter((b) => b.data === today()).sort((a, b) => b.id - a.id);

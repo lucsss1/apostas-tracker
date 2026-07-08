@@ -87,6 +87,16 @@ export function calcRoi(resolved: Aposta[]): number | null {
   return (lucro / totAp) * 100;
 }
 
+// CLV (Closing Line Value) médio — mede se a odd pega bateu a odd de fechamento do mercado,
+// independente do resultado da aposta (por isso não filtra por `resultado`, só por ter
+// odd de fechamento registrada). Mesma fórmula por-aposta usada em app/historico/page.tsx.
+export function calcAvgClv(bets: Aposta[]): number | null {
+  const withClv = bets.filter((b) => b.oddFech != null && b.odd);
+  if (withClv.length === 0) return null;
+  const sum = withClv.reduce((s, b) => s + (b.oddFech! / b.odd - 1) * 100, 0);
+  return sum / withClv.length;
+}
+
 export function resLbl(r: Resultado): string {
   return r === "ganhou"
     ? "✓ Ganhou"

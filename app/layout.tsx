@@ -1,13 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, DM_Mono, DM_Sans } from "next/font/google";
 import "./globals.css";
-import { AppStoreProvider } from "@/lib/store";
-import Header from "@/components/Header";
-import BottomNav from "@/components/BottomNav";
-import Toast from "@/components/Toast";
-import CalcSheet from "@/components/CalcSheet";
-import BancaSheet from "@/components/BancaSheet";
-import ResolverSheet from "@/components/ResolverSheet";
+import { AuthProvider } from "@/lib/auth";
+import AuthGate from "@/components/AuthGate";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -58,22 +53,9 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${dmMono.variable} ${dmSans.variable} font-sans text-[15px] bg-paper text-ink min-h-screen overflow-x-hidden`}
       >
-        <AppStoreProvider>
-          <div className="min-h-screen flex flex-col bg-paper">
-            <Header />
-            <div
-              className="flex-1 overflow-y-auto"
-              style={{ paddingBottom: "calc(var(--nav-h) + 16px)" }}
-            >
-              <div className="px-[18px] py-5 max-w-[560px] lg:max-w-[960px] mx-auto">{children}</div>
-            </div>
-          </div>
-          <BottomNav />
-          <ResolverSheet />
-          <BancaSheet />
-          <CalcSheet />
-          <Toast />
-        </AppStoreProvider>
+        <AuthProvider>
+          <AuthGate>{children}</AuthGate>
+        </AuthProvider>
       </body>
     </html>
   );

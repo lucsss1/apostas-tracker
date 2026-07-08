@@ -1,10 +1,12 @@
 "use client";
 
 import { useAppStore } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import SyncDot from "./SyncDot";
 
 export default function Header() {
   const { openCalc, openBancaSheet } = useAppStore();
+  const { user, signOut } = useAuth();
   return (
     <header
       className="sticky top-0 z-[100] flex flex-shrink-0 items-center gap-2.5 bg-paper border-b-2 border-ink px-[18px]"
@@ -12,7 +14,12 @@ export default function Header() {
     >
       <div className="font-serif italic text-lg text-ink tracking-tight">Hegreen</div>
       <SyncDot />
-      <div className="ml-auto flex gap-1.5">
+      <div className="ml-auto flex items-center gap-1.5">
+        {user && (
+          <span className="hidden sm:inline font-mono text-[11px] text-ink4 tracking-wide mr-1 max-w-[160px] truncate">
+            {user.email}
+          </span>
+        )}
         <button
           className="font-mono text-[11px] text-ink3 border border-rule2 px-2.5 py-1 tracking-wider active:border-ink active:text-ink transition-colors"
           onClick={openCalc}
@@ -24,6 +31,12 @@ export default function Header() {
           onClick={openBancaSheet}
         >
           banca
+        </button>
+        <button
+          className="font-mono text-[11px] text-ink3 border border-rule2 px-2.5 py-1 tracking-wider active:border-ink active:text-ink transition-colors"
+          onClick={signOut}
+        >
+          sair
         </button>
       </div>
     </header>

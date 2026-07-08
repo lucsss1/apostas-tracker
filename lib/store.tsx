@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { supabase } from "./supabase";
+import { useAuth } from "./auth";
 import { fromDB, toDB, type Aposta, type ApostaRow, type Resultado } from "./types";
 import { getBanca, getOfflineBets, setBanca as persistBanca, setOfflineBets } from "./storage";
 import { fmtR } from "./calc";
@@ -59,6 +60,8 @@ interface AppStoreValue {
 const AppStoreContext = createContext<AppStoreValue | null>(null);
 
 export function AppStoreProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
   const [bets, setBets] = useState<Aposta[]>([]);
   const [banca, setBancaState] = useState(100);
   const [sync, setSync] = useState<SyncStatus>("sp");
@@ -73,19 +76,20 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const [calcTransfer, setCalcTransferState] = useState<CalcTransfer | null>(null);
 
   const loadBanca = useCallback(async () => {
+    if (!userId) return;
     const { data, error } = await supabase
       .from("config")
       .select("value")
       .eq("key", "banca_inicial")
       .maybeSingle();
     if (error || !data) {
-      setBancaState(getBanca());
+      setBancaState(getBanca(userId));
       return;
     }
     const v = parseFloat(data.value);
     setBancaState(v);
-    persistBanca(v);
-  }, []);
+    persistBanca(userId, v);
+  }, [userId]);
 
   useEffect(() => {
     loadBanca();
@@ -99,6 +103,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const loadBets = useCallback(async () => {
+    if (!userId) return;
     setSync("sp");
     const { data, error } = await supabase
       .from("apostas")
@@ -107,21 +112,22 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     if (error || !data) {
       setSync("err");
       toast("Offline — dados locais");
-      setBets(getOfflineBets());
+      setBets(getOfflineBets(userId));
       return;
     }
     setSync("ok");
     setBets((data as ApostaRow[]).map(fromDB));
-  }, [toast]);
+  }, [toast, userId]);
 
   const insertBet = useCallback(
     async (b: Aposta) => {
+      if (!userId) return;
       setSync("sp");
-      const { error } = await supabase.from("apostas").insert(toDB(b));
+      const { error } = await supabase.from("apostas").insert({ ...toDB(b), user_id: userId });
       if (error) {
         setSync("err");
-        const next = [b, ...getOfflineBets()];
-        setOfflineBets(next);
+        const next = [b, ...getOfflineBets(userId)];
+        setOfflineBets(userId, next);
         setBets(next);
         toast("Salvo offline");
         return;
@@ -129,7 +135,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       setSync("ok");
       await loadBets();
     },
-    [loadBets, toast]
+    [loadBets, toast, userId]
   );
 
   const updateBet = useCallback(
@@ -165,12 +171,13 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   const setBancaValue = useCallback(
     async (v: number) => {
+      if (!userId) return;
       setBancaState(v);
-      persistBanca(v);
+      persistBanca(userId, v);
       setSync("sp");
       const { error } = await supabase
         .from("config")
-        .upsert({ key: "banca_inicial", value: String(v) }, { onConflict: "key" });
+        .upsert({ key: "banca_inicial", value: String(v), user_id: userId }, { onConflict: "user_id,key" });
       if (error) {
         setSync("err");
         toast("Salvo offline");
@@ -178,13 +185,16 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       }
       setSync("ok");
     },
-    [toast]
+    [toast, userId]
   );
 
   const importBets = useCallback(
     async (importedBets: Aposta[], importedBanca: number) => {
+      if (!userId) return;
       setSync("sp");
-      const { error } = await supabase.from("apostas").insert(importedBets.map(toDB));
+      const { error } = await supabase
+        .from("apostas")
+        .insert(importedBets.map((b) => ({ ...toDB(b), user_id: userId })));
       if (error) {
         setSync("err");
         toast("Erro ao importar");
@@ -193,20 +203,19 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       setSync("ok");
       const banca = importedBanca || 100;
       setBancaState(banca);
-      persistBanca(banca);
+      persistBanca(userId, banca);
       await supabase
         .from("config")
-        .upsert({ key: "banca_inicial", value: String(banca) }, { onConflict: "key" });
+        .upsert({ key: "banca_inicial", value: String(banca), user_id: userId }, { onConflict: "user_id,key" });
       await loadBets();
       toast(`✓ ${importedBets.length} importadas`);
     },
-    [loadBets, toast]
+    [loadBets, toast, userId]
   );
 
   useEffect(() => {
     loadBets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadBets]);
 
   const resolvedLucro = bets
     .filter((b) => b.resultado !== "pendente" && b.resultado !== "void")

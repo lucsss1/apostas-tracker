@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
-import { calcEV, calcPMkt, fmt, stakeFrom, today } from "@/lib/calc";
+import { calcEV, calcPMkt, fmt, stakeFrom, stakeRFromU, today } from "@/lib/calc";
 import { MERCADO_OPTIONS } from "@/lib/mercados";
 import type { Aposta } from "@/lib/types";
 import StatsPanel from "@/components/StatsPanel";
@@ -34,7 +34,7 @@ function MercadoInput({ value, onChange }: { value: string; onChange: (v: string
 }
 
 export default function RegistrarPage() {
-  const { banca, insertBet, calcTransfer, consumeCalcTransfer, toast } = useAppStore();
+  const { bancaAtual, insertBet, calcTransfer, consumeCalcTransfer, toast } = useAppStore();
   const router = useRouter();
 
   const [tipo, setTipo] = useState<Tipo>("s");
@@ -70,9 +70,9 @@ export default function RegistrarPage() {
   const ev = calcEV(prob, odd);
   const cls = ev === null ? "" : ev < 0 ? "neg" : ev < 5 ? "warn" : "pos";
   const recStake = stakeFrom(ev);
-  const valR = (recStake.u * banca * 0.01).toFixed(2);
+  const valR = stakeRFromU(recStake.u, bancaAtual).toFixed(2);
   const finalStakeU = stakeMode === "rec" ? recStake.u : parseInt(customStakeU, 10) || 0;
-  const finalStakeR = parseFloat((finalStakeU * banca * 0.01).toFixed(2));
+  const finalStakeR = stakeRFromU(finalStakeU, bancaAtual);
   const adj = pMkt != null && prob ? parseFloat(prob) - pMkt : null;
   const stageColor = stageColors[cls];
 

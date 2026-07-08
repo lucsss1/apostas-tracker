@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
-import { calcEV } from "@/lib/calc";
+import { calcEV, stakeRFromU } from "@/lib/calc";
 import { MERCADO_OPTIONS } from "@/lib/mercados";
 import Sheet from "./Sheet";
 
 export default function EditarSheet() {
-  const { editarOpen, editingId, closeEditar, bets, banca, updateBet, toast } = useAppStore();
+  const { editarOpen, editingId, closeEditar, bets, bancaAtual, updateBet, toast } = useAppStore();
   const bet = bets.find((b) => b.id === editingId);
 
   const [liga, setLiga] = useState("");
@@ -32,7 +32,7 @@ export default function EditarSheet() {
     if (!bet || !canSave) return;
     const newOdd = parseFloat(odd);
     const newStakeU = parseInt(stakeU, 10) || 0;
-    const newStakeR = parseFloat((newStakeU * banca * 0.01).toFixed(2));
+    const newStakeR = stakeRFromU(newStakeU, bancaAtual);
     const newEv = calcEV(bet.psua, newOdd);
     const newLucro =
       bet.resultado === "ganhou"

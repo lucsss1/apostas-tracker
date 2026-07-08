@@ -7,7 +7,7 @@ import { supabase } from "./supabase";
 interface AuthValue {
   user: User | null;
   loading: boolean;
-  signInWithOtp: (email: string) => Promise<string | null>;
+  signInWithOtp: (email: string, captchaToken?: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
 
@@ -29,11 +29,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const signInWithOtp = useCallback(async (email: string) => {
+  const signInWithOtp = useCallback(async (email: string, captchaToken?: string) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        captchaToken,
       },
     });
     if (!error) return null;

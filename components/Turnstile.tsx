@@ -39,7 +39,7 @@ export default function Turnstile({ onToken }: { onToken: (token: string | null)
   return (
     <>
       <Script
-        src="https://challenge.cloudflare.com/turnstile/v0/api.js"
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         onLoad={() => setScriptLoaded(true)}
       />
       <div ref={containerRef} />

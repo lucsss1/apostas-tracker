@@ -5,14 +5,20 @@ import { useAuth } from "@/lib/auth";
 import SyncDot from "./SyncDot";
 
 export default function Header() {
-  const { openCalc, openBancaSheet } = useAppStore();
+  const { openCalc, openBancaSheet, toast } = useAppStore();
   const { user, signOut } = useAuth();
   return (
     <header
       className="sticky top-0 z-[100] flex flex-shrink-0 items-center gap-2.5 bg-paper border-b-2 border-ink px-[18px]"
       style={{ height: "var(--hdr-h)" }}
     >
-      <div className="font-serif italic text-lg text-ink tracking-tight">Hegreen</div>
+      <button
+        type="button"
+        className="font-serif italic text-lg text-ink tracking-tight"
+        onClick={() => user?.email && toast(user.email, 4000)}
+      >
+        Hegreen
+      </button>
       <SyncDot />
       <div className="ml-auto flex items-center gap-1.5">
         {user && (

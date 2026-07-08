@@ -17,6 +17,15 @@ export default function LoginPage() {
   const handleToken = useCallback((token: string | null) => setCaptchaToken(token), []);
   const handleCaptchaError = useCallback(() => setCaptchaError(true), []);
 
+  function useAnotherEmail() {
+    setSent(false);
+    setEmail("");
+    setError("");
+    setCaptchaToken(null);
+    setCaptchaError(false);
+    setTurnstileKey((k) => k + 1);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim() || !captchaToken) return;
@@ -44,9 +53,16 @@ export default function LoginPage() {
         {sent ? (
           <div className="border border-rule px-4 py-5 text-center">
             <div className="text-sm text-ink mb-1.5">Verifique seu email</div>
-            <div className="font-mono text-[11px] text-ink4">
+            <div className="font-mono text-[11px] text-ink4 mb-3">
               Enviamos um link de acesso para {email}. Abra-o neste dispositivo para entrar.
             </div>
+            <button
+              type="button"
+              className="font-mono text-[11px] text-ink3 underline tracking-wide"
+              onClick={useAnotherEmail}
+            >
+              usar outro email
+            </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>

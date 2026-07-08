@@ -36,7 +36,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
       },
     });
-    return error?.message ?? null;
+    if (!error) return null;
+    const status = "status" in error ? error.status : undefined;
+    const detail = error.message || error.name || "Erro desconhecido";
+    return status ? `${detail} (HTTP ${status})` : detail;
   }, []);
 
   const signOut = useCallback(async () => {

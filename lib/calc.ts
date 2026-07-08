@@ -28,6 +28,19 @@ export function stakeFrom(ev: number | null): { u: number; l: string } {
   return { u: 3, l: "3u" };
 }
 
+// Converte stake em unidades para R$, sempre em cima da banca ATUAL (banca inicial + lucro
+// acumulado), nunca da banca inicial fixa. Isso é o que torna o staking "proporcional" de
+// verdade: 1u sempre vale 1% do capital de risco real, subindo/descendo com o resultado das
+// apostas já resolvidas — não do valor que o usuário configurou uma vez em `config.banca_inicial`.
+// 1u = 1% da bancaAtual (ver stakeFrom acima: os buckets de EV mapeiam para 1-3u, ou seja
+// 1%-3% da banca por aposta, dentro da faixa recomendada por staking fracionado tipo Kelly).
+export function stakeRFromU(stakeU: NumLike, bancaAtual: NumLike): number {
+  const u = n(stakeU);
+  const b = n(bancaAtual);
+  if (!u || isNaN(u) || isNaN(b) || u <= 0 || b <= 0) return 0;
+  return parseFloat((u * b * 0.01).toFixed(2));
+}
+
 export function evCls(ev: number | null): "" | "neg" | "warn" | "pos" {
   if (ev === null) return "";
   if (ev < 0) return "neg";
@@ -72,6 +85,16 @@ export function calcRoi(resolved: Aposta[]): number | null {
   if (totAp <= 0) return null;
   const lucro = resolved.reduce((s, b) => s + (b.lucro || 0), 0);
   return (lucro / totAp) * 100;
+}
+
+// CLV (Closing Line Value) médio — mede se a odd pega bateu a odd de fechamento do mercado,
+// independente do resultado da aposta (por isso não filtra por `resultado`, só por ter
+// odd de fechamento registrada). Mesma fórmula por-aposta usada em app/historico/page.tsx.
+export function calcAvgClv(bets: Aposta[]): number | null {
+  const withClv = bets.filter((b) => b.oddFech != null && b.odd);
+  if (withClv.length === 0) return null;
+  const sum = withClv.reduce((s, b) => s + (b.oddFech! / b.odd - 1) * 100, 0);
+  return sum / withClv.length;
 }
 
 export function resLbl(r: Resultado): string {

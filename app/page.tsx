@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
-import { evColor, fmt, fmtBRL, fmtR, roiColor, today } from "@/lib/calc";
+import { calcAvgClv, evColor, fmt, fmtBRL, fmtR, roiColor, today } from "@/lib/calc";
 import type { Aposta } from "@/lib/types";
 import StatusDot from "@/components/StatusDot";
 
@@ -15,6 +15,7 @@ export default function HomePage() {
   const totAp = resolved.reduce((s, b) => s + b.stakeR, 0);
   const roi = totAp > 0 ? (lucro / totAp) * 100 : null;
   const evMed = bets.length > 0 ? bets.reduce((s, b) => s + (b.ev || 0), 0) / bets.length : null;
+  const avgClv = calcAvgClv(bets);
   const wr = resolved.length > 0 ? (won.length / resolved.length) * 100 : null;
   const showDdown = bancaAtual < banca * 0.7;
 
@@ -73,14 +74,14 @@ export default function HomePage() {
         )}
       </div>
 
-      <div className="grid grid-cols-3 border-b border-rule">
-        <div className="py-3.5 border-r border-rule">
+      <div className="grid grid-cols-2 lg:grid-cols-4 border-b border-rule">
+        <div className="py-3.5 border-r border-b lg:border-b-0 border-rule">
           <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-ink4 mb-1 pl-3.5">ROI</div>
           <div className="font-serif text-[22px] font-bold pl-3.5" style={{ color: roiColor(roi) }}>
             {roi != null ? (roi >= 0 ? "+" : "") + fmt(roi) + "%" : "—"}
           </div>
         </div>
-        <div className="py-3.5 border-r border-rule">
+        <div className="py-3.5 border-b lg:border-b-0 lg:border-r border-rule">
           <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-ink4 mb-1 pl-3.5">Win%</div>
           <div
             className="font-serif text-[22px] font-bold pl-3.5"
@@ -89,13 +90,22 @@ export default function HomePage() {
             {wr != null ? fmt(wr, 0) + "%" : "—"}
           </div>
         </div>
-        <div className="py-3.5">
+        <div className="py-3.5 border-r border-rule">
           <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-ink4 mb-1 pl-3.5">EV méd.</div>
           <div
             className="font-serif text-[22px] font-bold pl-3.5"
             style={{ color: evColor(evMed) }}
           >
             {evMed != null ? (evMed >= 0 ? "+" : "") + fmt(evMed) + "%" : "—"}
+          </div>
+        </div>
+        <div className="py-3.5">
+          <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-ink4 mb-1 pl-3.5">CLV médio</div>
+          <div
+            className="font-serif text-[22px] font-bold pl-3.5"
+            style={{ color: evColor(avgClv) }}
+          >
+            {avgClv != null ? (avgClv >= 0 ? "+" : "") + fmt(avgClv) + "%" : "—"}
           </div>
         </div>
       </div>

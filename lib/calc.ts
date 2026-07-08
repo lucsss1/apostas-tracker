@@ -1,4 +1,4 @@
-import type { Resultado } from "./types";
+import type { Aposta, Resultado } from "./types";
 
 type NumLike = number | string | null | undefined;
 
@@ -43,6 +43,35 @@ export function resCol(r: Resultado): string {
     : r === "void"
     ? "var(--ink4)"
     : "var(--warn)";
+}
+
+// Cor do valor de EV — mesma escala usada em toda a UI (Registrar, Home, Histórico).
+export function evColor(ev: number | null | undefined): string {
+  if (ev === null || ev === undefined) return "var(--ink4)";
+  if (ev < 0) return "var(--lose)";
+  if (ev < 5) return "var(--warn)";
+  return "var(--win)";
+}
+
+// Cor do ROI — única fonte de verdade (evita divergência entre telas para o mesmo número).
+export function roiColor(roi: number | null | undefined): string {
+  if (roi === null || roi === undefined) return "var(--ink4)";
+  if (roi < 0) return "var(--lose)";
+  if (roi < 3) return "var(--ink3)";
+  return "var(--win)";
+}
+
+// Cor do lucro exibido — Void é sempre neutro, nunca "positivo" mesmo com lucro 0.
+export function lucroColor(resultado: Resultado, lucro: number | null | undefined): string {
+  if (resultado === "void" || lucro === null || lucro === undefined) return "var(--ink4)";
+  return lucro >= 0 ? "var(--win)" : "var(--lose)";
+}
+
+export function calcRoi(resolved: Aposta[]): number | null {
+  const totAp = resolved.reduce((s, b) => s + b.stakeR, 0);
+  if (totAp <= 0) return null;
+  const lucro = resolved.reduce((s, b) => s + (b.lucro || 0), 0);
+  return (lucro / totAp) * 100;
 }
 
 export function resLbl(r: Resultado): string {

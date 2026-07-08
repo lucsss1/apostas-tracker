@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useAppStore } from "@/lib/store";
-import { fmt, fmtR, resCol, resLbl } from "@/lib/calc";
+import { evColor, fmt, fmtR, lucroColor, resCol, resLbl, roiColor } from "@/lib/calc";
 import type { Aposta } from "@/lib/types";
+import StatusDot from "@/components/StatusDot";
 
 type Filtro = "todos" | "pendente" | "ganhou" | "perdeu";
 
@@ -15,7 +16,7 @@ const filtros: { key: Filtro; label: string }[] = [
 ];
 
 export default function HistoricoPage() {
-  const { bets, deleteBet, openResolver } = useAppStore();
+  const { bets, deleteBet, openResolver, openEditar, loading } = useAppStore();
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [openIds, setOpenIds] = useState<Set<number>>(new Set());
 
@@ -53,6 +54,14 @@ export default function HistoricoPage() {
     });
   }
 
+  if (loading) {
+    return (
+      <div className="py-24 text-center">
+        <div className="font-mono text-[11px] text-ink4 uppercase tracking-wide">Carregando…</div>
+      </div>
+    );
+  }
+
   return (
     <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-8 lg:items-start">
       <div className="lg:sticky lg:top-[calc(var(--hdr-h)+20px)]">
@@ -74,7 +83,7 @@ export default function HistoricoPage() {
           <div className="grid grid-cols-3 lg:grid-cols-1 border border-rule mb-3.5">
             <div className="px-3 py-2.5 border-r lg:border-r-0 lg:border-b border-rule text-center lg:text-left">
               <div className="font-mono text-[8px] uppercase tracking-wide text-ink4 mb-1">ROI</div>
-              <div className="font-serif text-base font-bold" style={{ color: roi != null && roi >= 0 ? "var(--win)" : "var(--lose)" }}>
+              <div className="font-serif text-base font-bold" style={{ color: roiColor(roi) }}>
                 {roi != null ? (roi >= 0 ? "+" : "") + fmt(roi) + "%" : "—"}
               </div>
             </div>
@@ -101,6 +110,7 @@ export default function HistoricoPage() {
               open={openIds.has(b.id)}
               onToggle={() => toggleOpen(b.id)}
               onResolve={() => openResolver(b.id)}
+              onEdit={() => openEditar(b.id)}
               onDelete={() => deleteBet(b.id)}
             />
           ))}
@@ -115,12 +125,14 @@ function BetCard({
   open,
   onToggle,
   onResolve,
+  onEdit,
   onDelete,
 }: {
   bet: Aposta;
   open: boolean;
   onToggle: () => void;
   onResolve: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   const clv = bet.oddFech && bet.odd ? (bet.oddFech / bet.odd - 1) * 100 : null;
@@ -130,27 +142,25 @@ function BetCard({
       : clv != null
       ? (clv >= 0 ? "+" : "") + fmt(clv) + "%"
       : "—";
-  const lucroColor = bet.lucro != null ? (bet.lucro >= 0 ? "var(--win)" : "var(--lose)") : "var(--ink4)";
-  const evColor =
-    bet.ev != null && bet.ev >= 5 ? "var(--win)" : bet.ev != null && bet.ev < 0 ? "var(--lose)" : "var(--warn)";
+  const lucroClr = lucroColor(bet.resultado, bet.lucro);
 
   return (
     <div className={`border mb-1.5 overflow-hidden bg-paper transition-colors ${open ? "border-ink" : "border-rule"}`}>
       <div className="flex items-center px-3.5 py-3 gap-2.5 cursor-pointer" onClick={onToggle}>
-        <div className="w-1.5 h-1.5 rounded-[50%] flex-shrink-0" style={{ background: resCol(bet.resultado) }} />
+        <StatusDot resultado={bet.resultado} />
         <div className="flex-1 min-w-0">
           <div className="text-[13px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis text-ink">
             {bet.jogo}
           </div>
-          <div className="text-[11px] text-ink4 mt-px font-mono">
+          <div className="text-[11px] text-ink3 mt-px font-mono">
             {bet.liga} · {bet.data}
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <div className="font-mono text-xs font-medium" style={{ color: evColor }}>
-            {bet.ev != null ? "+" + fmt(bet.ev) + "%" : "—"}
+          <div className="font-mono text-xs font-medium" style={{ color: evColor(bet.ev) }}>
+            {bet.ev != null ? (bet.ev >= 0 ? "+" : "") + fmt(bet.ev) + "%" : "—"}
           </div>
-          <div className="font-mono text-[10px] text-ink4 mt-px">{bet.stakeU}u</div>
+          <div className="font-mono text-[10px] text-ink3 mt-px">{bet.stakeU}u</div>
         </div>
         <span
           className="font-mono text-[10px] text-ink4 ml-1 transition-transform duration-200"
@@ -174,12 +184,17 @@ function BetCard({
           )}
           <div className="grid grid-cols-2 border border-rule my-3 overflow-hidden">
             <GridItem label="Odd" value={String(bet.odd)} />
-            <GridItem label="EV" value={bet.ev != null ? "+" + fmt(bet.ev) + "%" : "—"} color={evColor} noBorderRight />
+            <GridItem
+              label="EV"
+              value={bet.ev != null ? (bet.ev >= 0 ? "+" : "") + fmt(bet.ev) + "%" : "—"}
+              color={evColor(bet.ev)}
+              noBorderRight
+            />
             <GridItem label="Stake" value={`${bet.stakeU}u · R$${bet.stakeR}`} />
             <GridItem
               label={bet.resultado !== "pendente" ? "Lucro" : "CLV"}
               value={lucroDisplay}
-              color={lucroColor}
+              color={lucroClr}
               noBorderRight
             />
             <GridItem label="Mercado" value={bet.mercado || "—"} small noBorderBottom />
@@ -204,19 +219,33 @@ function BetCard({
                   Resolver resultado
                 </button>
                 <button
-                  className="px-3 py-2.5 border border-rule2 text-ink4 text-xs font-mono bg-transparent"
+                  className="px-3 py-2.5 border border-rule2 text-ink3 text-xs font-mono bg-transparent"
+                  onClick={onEdit}
+                >
+                  Editar
+                </button>
+                <button
+                  className="px-3 py-2.5 border border-rule2 text-ink3 text-xs font-mono bg-transparent"
                   onClick={onDelete}
                 >
                   Apagar
                 </button>
               </>
             ) : (
-              <button
-                className="flex-1 p-2.5 border border-rule2 text-ink4 text-xs font-mono bg-transparent text-center"
-                onClick={onDelete}
-              >
-                Apagar
-              </button>
+              <>
+                <button
+                  className="flex-1 p-2.5 border border-rule2 text-ink3 text-xs font-mono bg-transparent text-center"
+                  onClick={onEdit}
+                >
+                  Editar
+                </button>
+                <button
+                  className="flex-1 p-2.5 border border-rule2 text-ink3 text-xs font-mono bg-transparent text-center"
+                  onClick={onDelete}
+                >
+                  Apagar
+                </button>
+              </>
             )}
           </div>
         </div>

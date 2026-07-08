@@ -26,6 +26,7 @@ interface AppStoreValue {
   bets: Aposta[];
   banca: number;
   bancaAtual: number;
+  loading: boolean;
   sync: SyncStatus;
   loadBets: () => Promise<void>;
   insertBet: (b: Aposta) => Promise<void>;
@@ -52,6 +53,11 @@ interface AppStoreValue {
   closeResolver: () => void;
   confirmResolver: (resultado: Resultado, oddFech: number | null) => Promise<void>;
 
+  editarOpen: boolean;
+  editingId: number | null;
+  openEditar: (id: number) => void;
+  closeEditar: () => void;
+
   calcTransfer: CalcTransfer | null;
   setCalcTransfer: (t: CalcTransfer) => void;
   consumeCalcTransfer: () => CalcTransfer | null;
@@ -73,7 +79,12 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const [bancaSheetOpen, setBancaSheetOpen] = useState(false);
   const [resolverOpen, setResolverOpen] = useState(false);
   const [resolvingId, setResolvingId] = useState<number | null>(null);
+  const [editarOpen, setEditarOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [calcTransfer, setCalcTransferState] = useState<CalcTransfer | null>(null);
+  const [bancaLoaded, setBancaLoaded] = useState(false);
+  const [betsLoaded, setBetsLoaded] = useState(false);
+  const loading = !bancaLoaded || !betsLoaded;
 
   const loadBanca = useCallback(async () => {
     if (!userId) return;
@@ -84,11 +95,13 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       .maybeSingle();
     if (error || !data) {
       setBancaState(getBanca(userId));
+      setBancaLoaded(true);
       return;
     }
     const v = parseFloat(data.value);
     setBancaState(v);
     persistBanca(userId, v);
+    setBancaLoaded(true);
   }, [userId]);
 
   useEffect(() => {
@@ -113,10 +126,12 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       setSync("err");
       toast("Offline — dados locais");
       setBets(getOfflineBets(userId));
+      setBetsLoaded(true);
       return;
     }
     setSync("ok");
     setBets((data as ApostaRow[]).map(fromDB));
+    setBetsLoaded(true);
   }, [toast, userId]);
 
   const insertBet = useCallback(
@@ -155,7 +170,12 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
   const deleteBet = useCallback(
     async (id: number) => {
-      if (typeof window !== "undefined" && !window.confirm("Apagar?")) return;
+      const b = bets.find((x) => x.id === id);
+      const msg =
+        b && b.resultado !== "pendente" && b.lucro
+          ? `Apagar esta aposta vai remover ${fmtR(b.lucro)} do seu lucro registrado. Confirmar?`
+          : "Apagar aposta?";
+      if (typeof window !== "undefined" && !window.confirm(msg)) return;
       setSync("sp");
       const { error } = await supabase.from("apostas").delete().eq("id", id);
       if (error) {
@@ -166,7 +186,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
       setSync("ok");
       await loadBets();
     },
-    [loadBets, toast]
+    [bets, loadBets, toast]
   );
 
   const setBancaValue = useCallback(
@@ -228,6 +248,12 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const closeResolver = useCallback(() => setResolverOpen(false), []);
 
+  const openEditar = useCallback((id: number) => {
+    setEditingId(id);
+    setEditarOpen(true);
+  }, []);
+  const closeEditar = useCallback(() => setEditarOpen(false), []);
+
   const confirmResolver = useCallback(
     async (resultado: Resultado, oddFech: number | null) => {
       const b = bets.find((x) => x.id === resolvingId);
@@ -273,6 +299,7 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     bets,
     banca,
     bancaAtual,
+    loading,
     sync,
     loadBets,
     insertBet,
@@ -298,6 +325,11 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
     openResolver,
     closeResolver,
     confirmResolver,
+
+    editarOpen,
+    editingId,
+    openEditar,
+    closeEditar,
 
     calcTransfer,
     setCalcTransfer,

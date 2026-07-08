@@ -10,6 +10,8 @@ import Toast from "./Toast";
 import CalcSheet from "./CalcSheet";
 import BancaSheet from "./BancaSheet";
 import ResolverSheet from "./ResolverSheet";
+import EditarSheet from "./EditarSheet";
+import OfflineBanner from "./OfflineBanner";
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -41,6 +43,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     <AppStoreProvider>
       <div className="min-h-screen flex flex-col bg-paper">
         <Header />
+        <OfflineBanner />
         <div
           className="flex-1 overflow-y-auto"
           style={{ paddingBottom: "calc(var(--nav-h) + 16px)" }}
@@ -50,6 +53,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       </div>
       <BottomNav />
       <ResolverSheet />
+      <EditarSheet />
       <BancaSheet />
       <CalcSheet />
       <Toast />

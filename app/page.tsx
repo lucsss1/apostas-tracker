@@ -2,18 +2,12 @@
 
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
-import { fmt, fmtBRL, fmtR, resCol, today } from "@/lib/calc";
+import { evColor, fmt, fmtBRL, fmtR, roiColor, today } from "@/lib/calc";
 import type { Aposta } from "@/lib/types";
-
-function roiColor(r: number | null): string {
-  if (r == null) return "var(--ink4)";
-  if (r < 0) return "var(--lose)";
-  if (r < 3) return "var(--ink3)";
-  return "var(--win)";
-}
+import StatusDot from "@/components/StatusDot";
 
 export default function HomePage() {
-  const { bets, banca, bancaAtual } = useAppStore();
+  const { bets, banca, bancaAtual, loading } = useAppStore();
 
   const resolved = bets.filter((b) => b.resultado !== "pendente" && b.resultado !== "void");
   const won = bets.filter((b) => b.resultado === "ganhou");
@@ -42,6 +36,14 @@ export default function HomePage() {
   }
 
   const todayBets = bets.filter((b) => b.data === today()).sort((a, b) => b.id - a.id);
+
+  if (loading) {
+    return (
+      <div className="py-24 text-center">
+        <div className="font-mono text-[11px] text-ink4 uppercase tracking-wide">Carregando…</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -85,9 +87,9 @@ export default function HomePage() {
           <div className="font-mono text-[8px] uppercase tracking-[0.14em] text-ink4 mb-1 pl-3.5">EV méd.</div>
           <div
             className="font-serif text-[22px] font-bold pl-3.5"
-            style={{ color: evMed != null && evMed >= 5 ? "var(--win)" : "var(--ink4)" }}
+            style={{ color: evColor(evMed) }}
           >
-            {evMed != null ? "+" + fmt(evMed) + "%" : "—"}
+            {evMed != null ? (evMed >= 0 ? "+" : "") + fmt(evMed) + "%" : "—"}
           </div>
         </div>
       </div>
@@ -149,25 +151,23 @@ export default function HomePage() {
 }
 
 function TodayRow({ bet }: { bet: Aposta }) {
-  const evColor =
-    bet.ev != null && bet.ev >= 5 ? "var(--win)" : bet.ev != null && bet.ev < 0 ? "var(--lose)" : "var(--warn)";
   return (
     <Link href="/historico" className="flex items-center gap-2.5 py-[11px] border-b border-rule last:border-b-0">
-      <div className="w-1.5 h-1.5 rounded-[50%] flex-shrink-0" style={{ background: resCol(bet.resultado) }} />
+      <StatusDot resultado={bet.resultado} />
       <div className="flex-1 min-w-0">
         <div className="text-[13px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis text-ink">
           {bet.jogo}
         </div>
-        <div className="text-[11px] text-ink4 mt-px font-mono">
+        <div className="text-[11px] text-ink3 mt-px font-mono">
           {bet.mercado}
           {bet.multipla ? " · múltipla" : ""}
         </div>
       </div>
       <div className="text-right flex-shrink-0">
-        <div className="font-mono text-xs font-medium" style={{ color: evColor }}>
-          {bet.ev != null ? "+" + fmt(bet.ev) + "%" : "—"}
+        <div className="font-mono text-xs font-medium" style={{ color: evColor(bet.ev) }}>
+          {bet.ev != null ? (bet.ev >= 0 ? "+" : "") + fmt(bet.ev) + "%" : "—"}
         </div>
-        <div className="font-mono text-[10px] text-ink4 mt-px">
+        <div className="font-mono text-[10px] text-ink3 mt-px">
           {bet.stakeU}u · R${bet.stakeR}
         </div>
       </div>
